@@ -5,11 +5,9 @@
 
 #include <iostream>
 #include <string>
-#include <cctype>
 
 using namespace std;
 
-// Приведение строки к нижнему регистру
 string toLower(const string& str) {
     string result = str;
     for (size_t i = 0; i < result.length(); i++) {
@@ -18,13 +16,11 @@ string toLower(const string& str) {
     return result;
 }
 
-// Проверка, является ли символ разделителем
 bool isDelimiter(char c) {
     return c == ' ' || c == ',' || c == '.' || c == '!' || c == '?' ||
         c == ':' || c == ';' || c == '(' || c == ')' || c == '\n' || c == '\t';
 }
 
-// Извлечение слов из текста
 int extractWords(const string& text, string words[], int maxWords) {
     int wordCount = 0;
     string currentWord = "";
@@ -44,7 +40,6 @@ int extractWords(const string& text, string words[], int maxWords) {
         }
     }
 
-    // Обработка последнего слова
     if (currentWord.length() > 0 && wordCount < maxWords) {
         words[wordCount] = toLower(currentWord);
         wordCount++;
@@ -53,7 +48,6 @@ int extractWords(const string& text, string words[], int maxWords) {
     return wordCount;
 }
 
-// Проверка наличия слова в массиве
 bool contains(const string words[], int count, const string& word) {
     for (int i = 0; i < count; i++) {
         if (words[i] == word) {
@@ -91,7 +85,6 @@ int main() {
         }
     }
 
-    // Вывод результата
     cout << "\nОбщие слова:" << endl;
     if (commonCount == 0) {
         cout << "Нет общих слов" << endl;
