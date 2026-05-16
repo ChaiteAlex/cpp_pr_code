@@ -664,23 +664,24 @@ void demonstrate_tasks(flight lis[]) {
 // ==================== КОНЕЦ НОВЫХ ФУНКЦИЙ ====================
 
 void menu_init(flight lis[]) {
-	char chs_in;
-
-	cout << "\n\n\tWelcome! ";
-
-	while (1 > 0) {
-		cout << "\n\n\t-----------Enter a character of an command for your session-----------\n\n";
-		cout << "\t (D)isplay - Display list of flight\n";
-		cout << "\t (U)pdate - Update list\n";
-		cout << "\t (S)ort - Sort list by the bubble sorting\n";
-		cout << "\t (E)xecute - Execute tasks (filter, sort, display)\n";
-		cout << "\t (C)harter - Filter charter flights by price\n";  // ← НОВЫЙ ПУНКТ
-		cout << "\t (Q)uit - Quit from the program\n\n";
-
-		cout << "\tEnter a character: ";
-		cin >> chs_in;
-		cout << endl;
-
+    char chs_in;
+    
+    cout << "\n\n\tWelcome! ";
+    
+    while(1>0){
+        cout << "\n\n\t-----------Enter a character of an command for your session-----------\n\n";
+        cout << "\t (D)isplay - Display list of flight\n";
+        cout << "\t (U)pdate - Update list\n";
+        cout << "\t (S)ort - Sort list by the bubble sorting\n";
+        cout << "\t (E)xecute - Execute tasks (filter, sort, display)\n";
+        cout << "\t (C)harter - Filter charter flights by price\n";
+        cout << "\t (L)oad - Load data from file\n";    
+        cout << "\t (Q)uit - Quit from the program\n\n";
+        
+        cout << "\tEnter a character: ";
+        cin >> chs_in;
+        cout << endl;
+		
 		switch (chs_in)
 		{
 		case 'D':
@@ -723,26 +724,206 @@ void menu_init(flight lis[]) {
 			cout << "Exiting...\n";
 			exit(0);
 
+		case 'L':
+        case 'l':
+            {
+            fupdate(lis, "myfile.txt");
+            break;
+            }
 		default:
 			cout << "\t\t\tError! incorrect character: '" << chs_in << "' is must be d / u / s / e / c / q \n\n";
 		}
 	}
 }
 
-/*void fupdate(flight mas[SIZE], string filename ) { // Unfinished code
-
+void fupdate(flight mas[SIZE], string filename) {
+	
+	cout << "\n\t-----------Loading data from file-----------\n\n";
+	
 	ifstream fin;
-	string str;
-	fin.open("myfile.txt"); // ansi для русского текста
-		if (fin.is_open()) {
-		while (!fin.eof())
-		{
-			fin >> str;
-
+	fin.open(filename);
+	
+	if (!fin.is_open()) {
+		cout << "\t\t\tError! Cannot open file: " << filename << endl;
+		cout << "\t\t\tCheck if file exists and try again.\n\n";
+		return;
+	}
+	
+	cout << "\tFile opened successfully!\n\n";
+	
+	int records_loaded = 0;
+	string line;
+	
+	// Временные переменные для чтения
+	string temp_message;
+	int d_day, d_month, d_year, d_hours, d_minutes;
+	int a_day, a_month, a_year, a_hours, a_minutes;
+	int dur_hours, dur_minutes;
+	double temp_price;
+	string temp_type;
+	
+	// Пропускаем возможный BOM в файле (для UTF-8)
+	char bom_check;
+	fin.peek();
+	
+	while (!fin.eof() && records_loaded < SIZE) {
+		
+		// Читаем маршрут (может содержать пробелы)
+		if (!getline(fin, temp_message)) break;
+		
+		// Пропускаем пустые строки
+		if (temp_message.empty()) continue;
+		
+		// Читаем дату отправления
+		if (!(fin >> d_day >> d_month >> d_year >> d_hours >> d_minutes)) {
+			cout << "\t\t\tWarning! Invalid departure date format at record " << records_loaded + 1 << ". Skipped.\n";
+			fin.clear();
+			fin.ignore(1000, '\n');
+			continue;
+		}
+		
+		// Читаем дату прибытия
+		if (!(fin >> a_day >> a_month >> a_year >> a_hours >> a_minutes)) {
+			cout << "\t\t\tWarning! Invalid arrival date format at record " << records_loaded + 1 << ". Skipped.\n";
+			fin.clear();
+			fin.ignore(1000, '\n');
+			continue;
+		}
+		
+		// Читаем длительность
+		if (!(fin >> dur_hours >> dur_minutes)) {
+			cout << "\t\t\tWarning! Invalid duration format at record " << records_loaded + 1 << ". Skipped.\n";
+			fin.clear();
+			fin.ignore(1000, '\n');
+			continue;
+		}
+		
+		// Читаем цену
+		if (!(fin >> temp_price)) {
+			cout << "\t\t\tWarning! Invalid price format at record " << records_loaded + 1 << ". Skipped.\n";
+			fin.clear();
+			fin.ignore(1000, '\n');
+			continue;
+		}
+		
+		// Читаем тип рейса
+		if (!(fin >> temp_type)) {
+			cout << "\t\t\tWarning! Invalid flight type at record " << records_loaded + 1 << ". Skipped.\n";
+			fin.clear();
+			fin.ignore(1000, '\n');
+			continue;
+		}
+		
+		// Пропускаем оставшийся перевод строки после типа
+		fin.ignore(1000, '\n');
+		
+		// Проверка валидности данных
+		bool valid = true;
+		
+		if (d_day < 1 || d_day > 31) {
+			cout << "\t\t\tWarning! Record " << records_loaded + 1 << ": Invalid departure day (" << d_day << "). Skipped.\n";
+			valid = false;
+		}
+		if (d_month < 1 || d_month > 12) {
+			cout << "\t\t\tWarning! Record " << records_loaded + 1 << ": Invalid departure month (" << d_month << "). Skipped.\n";
+			valid = false;
+		}
+		if (d_year < 0) {
+			cout << "\t\t\tWarning! Record " << records_loaded + 1 << ": Invalid departure year (" << d_year << "). Skipped.\n";
+			valid = false;
+		}
+		if (a_day < 1 || a_day > 31) {
+			cout << "\t\t\tWarning! Record " << records_loaded + 1 << ": Invalid arrival day (" << a_day << "). Skipped.\n";
+			valid = false;
+		}
+		if (a_month < 1 || a_month > 12) {
+			cout << "\t\t\tWarning! Record " << records_loaded + 1 << ": Invalid arrival month (" << a_month << "). Skipped.\n";
+			valid = false;
+		}
+		if (a_year < 0) {
+			cout << "\t\t\tWarning! Record " << records_loaded + 1 << ": Invalid arrival year (" << a_year << "). Skipped.\n";
+			valid = false;
+		}
+		if (d_hours < 0 || d_hours >= 24) {
+			cout << "\t\t\tWarning! Record " << records_loaded + 1 << ": Invalid departure hours (" << d_hours << "). Skipped.\n";
+			valid = false;
+		}
+		if (d_minutes < 0 || d_minutes >= 60) {
+			cout << "\t\t\tWarning! Record " << records_loaded + 1 << ": Invalid departure minutes (" << d_minutes << "). Skipped.\n";
+			valid = false;
+		}
+		if (a_hours < 0 || a_hours >= 24) {
+			cout << "\t\t\tWarning! Record " << records_loaded + 1 << ": Invalid arrival hours (" << a_hours << "). Skipped.\n";
+			valid = false;
+		}
+		if (a_minutes < 0 || a_minutes >= 60) {
+			cout << "\t\t\tWarning! Record " << records_loaded + 1 << ": Invalid arrival minutes (" << a_minutes << "). Skipped.\n";
+			valid = false;
+		}
+		if (dur_hours < 0 || dur_hours > 48) {
+			cout << "\t\t\tWarning! Record " << records_loaded + 1 << ": Invalid duration hours (" << dur_hours << "). Skipped.\n";
+			valid = false;
+		}
+		if (dur_minutes < 0 || dur_minutes >= 60) {
+			cout << "\t\t\tWarning! Record " << records_loaded + 1 << ": Invalid duration minutes (" << dur_minutes << "). Skipped.\n";
+			valid = false;
+		}
+		if (temp_price < 0) {
+			cout << "\t\t\tWarning! Record " << records_loaded + 1 << ": Invalid price (" << temp_price << "). Skipped.\n";
+			valid = false;
+		}
+		
+		// Конвертируем тип рейса
+		fl_type temp_fl_type;
+		if (temp_type == "e" || temp_type == "E" || temp_type == "Default") {
+			temp_fl_type = fl_type::e;
+		} else if (temp_type == "c" || temp_type == "C" || temp_type == "Charter") {
+			temp_fl_type = fl_type::c;
+		} else if (temp_type == "t" || temp_type == "T" || temp_type == "Transit") {
+			temp_fl_type = fl_type::t;
+		} else if (temp_type == "d" || temp_type == "D" || temp_type == "Docking") {
+			temp_fl_type = fl_type::d;
+		} else {
+			cout << "\t\t\tWarning! Record " << records_loaded + 1 << ": Unknown type '" << temp_type << "'. Set to Default.\n";
+			temp_fl_type = fl_type::e;
+		}
+		
+		// Если данные валидны, записываем в массив
+		if (valid) {
+			mas[records_loaded].flight_message = temp_message;
+			mas[records_loaded].t_departure = {d_day, d_month, d_year, d_hours, d_minutes};
+			mas[records_loaded].t_arrival = {a_day, a_month, a_year, a_hours, a_minutes};
+			mas[records_loaded].t_duration = {0, 0, 0, dur_hours, dur_minutes};
+			mas[records_loaded].price = temp_price;
+			mas[records_loaded].flight_type = temp_fl_type;
+			
+			records_loaded++;
 		}
 	}
-		fin.close();
-}*/
+	
+	fin.close();
+	
+	cout << "\n\t-----------Loading completed!-----------\n\n";
+	cout << "\tRecords loaded successfully: " << records_loaded << " from " << filename << endl;
+	
+	// Очищаем остальные записи (помечаем как пустые)
+	for (int i = records_loaded; i < SIZE; i++) {
+		mas[i].flight_message.clear();
+	}
+	
+	cout << "\n\tDo you want to display loaded list?(y/n): ";
+	char show;
+	cin >> show;
+	
+	if (tolower(show) == 'y') {
+		cout << endl;
+		display_list(mas, 0, SIZE);
+	}
+	
+	cout << "\n\tPress Enter to continue...";
+	cin.ignore();
+	cin.get();
+}
 
 int main()
 {
